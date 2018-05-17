@@ -12,9 +12,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
-        locationManager.delegate = self
-        let center = UNUserNotificationCenter.current()
-        center.requestAuthorization(options:[.alert, .sound]) { (granted, error) in }
         return true
     }
 
@@ -39,56 +36,4 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationWillTerminate(_ application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     }
-
-    func startMonitoring(_ item: Item){
-        let beaconRegion = item.asBeaconRegion()
-        locationManager.startMonitoring(for: beaconRegion)
-        locationManager.startRangingBeacons(in: beaconRegion )
-    }
 }
-
-extension AppDelegate: CLLocationManagerDelegate{
-    func locationManager(_ manager: CLLocationManager, didRangeBeacons beacons: [CLBeacon], in region: CLBeaconRegion) {
-        if let controller = self.viewController{
-            for beacon in beacons{
-                for row in 0..<controller.items.count {
-                    if controller.items[row].uuid == beacon.proximityUUID &&
-                        controller.items[row].majorValue == Int(truncating: beacon.major) &&
-                        controller.items[row].minorValue == Int(truncating: beacon.minor){
-                        if let description = controller.items[row].desc{
-                            print("AppDelegate")
-                            let content = UNMutableNotificationContent()
-                            content.title = "Bonduelle"
-                            content.body = description
-                            content.sound = .default()
-                            
-                            let request  = UNNotificationRequest(identifier: "Bonduelle", content: content, trigger: nil)
-                            UNUserNotificationCenter.current().add(request, withCompletionHandler: nil)
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
-    func locationManager(_ manager: CLLocationManager, didExitRegion region: CLRegion) {
-        if let controller = self.viewController{
-            if let description = controller.items[0].desc{
-                let content = UNMutableNotificationContent()
-                content.title = "Bonduelle"
-                content.body = description
-                content.sound = .default()
-            
-                let request  = UNNotificationRequest(identifier: "Bonduelle", content: content, trigger: nil)
-                UNUserNotificationCenter.current().add(request, withCompletionHandler: nil)
-            }
-        }
-    }
-    
-    func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
-        guard region is CLBeaconRegion else { return }
-        
-
-    }
-}
-
